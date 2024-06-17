@@ -1,11 +1,12 @@
 package main
 
 import (
-	"golang/api" // Ubah `my-module` menjadi nama modul yang Anda tentukan
+	"golang/api"
 	"net/http"
 )
 
 func main() {
-	http.HandleFunc("/", api.Handler) // Gunakan handler yang didefinisikan di index.go
-	http.ListenAndServe(":8080", nil) // Jalankan server HTTP pada port 8080
+	http.HandleFunc("/", api.Handler)
+	http.HandleFunc("/2", api.Handler2) // Gunakan handler yang didefinisikan di index.go
+	http.ListenAndServe(":8080", nil)   // Jalankan server HTTP pada port 8080
 }
