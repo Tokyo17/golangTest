@@ -2,26 +2,58 @@ package api
 
 import (
 	"database/sql"
-	"fmt"
+	"encoding/json"
 	"net/http"
 
 	_ "github.com/lib/pq"
 )
 
+type User struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+var users []User
+
 func Handler(w http.ResponseWriter, r *http.Request) {
 	connStr := "postgresql://Tokyo17:pnm2fY6awAjE@ep-royal-sun-104233.us-east-2.aws.neon.tech/neondb?sslmode=require"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	defer db.Close()
 
-	var version string
-	if err := db.QueryRow("select version()").Scan(&version); err != nil {
-		panic(err)
+	rows, err := db.Query("SELECT id, name FROM \"user\" ")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user User
+		err := rows.Scan(&user.ID, &user.Name)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		users = append(users, user)
 	}
 
-	// fmt.Printf(w,"version=%s\n", version)
+	if err := rows.Err(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	fmt.Fprintf(w, "Hello from Go 1 %s", version)
+	// Convert users slice to JSON
+	usersJSON, err := json.Marshal(users)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(usersJSON)
 }
