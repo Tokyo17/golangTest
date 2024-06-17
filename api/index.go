@@ -13,8 +13,6 @@ type User struct {
 	Name string `json:"name"`
 }
 
-var users []User
-
 func Handler(w http.ResponseWriter, r *http.Request) {
 	connStr := "postgresql://Tokyo17:pnm2fY6awAjE@ep-royal-sun-104233.us-east-2.aws.neon.tech/neondb?sslmode=require"
 	db, err := sql.Open("postgres", connStr)
@@ -30,6 +28,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer rows.Close()
+
+	var users []User
 
 	for rows.Next() {
 		var user User
